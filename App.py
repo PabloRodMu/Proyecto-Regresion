@@ -19,11 +19,13 @@ df = load_data() # Carga de datos
 
 
 modelo = joblib.load("best_xgb_model_final.pkl") # Carga del modelo
+target_maps = joblib.load("target_encoding_maps.joblib") # Carga del encoding
 
 final_columns = modelo.get_booster().feature_names # Columnas finales usadas en el modelo
 
 with open("metrics.json", "r") as f:
     metrics = json.load(f)
+    
 
 
 
@@ -197,26 +199,32 @@ elif section == "🔮 Predicción":
     st.title("🔮 Predicción")
     st.markdown("Introduce las características del coche:")
 
+    # ===============================
     # Inputs de usuario
-    
+    # ===============================
     brand = st.selectbox("Marca", df["brand"].unique())
-    model_year = st.number_input("Año del modelo", min_value=int(df["model_year"].min()), max_value=int(df["model_year"].max()), value=2020)
+    model_year = st.number_input("Año del modelo", min_value=int(df["model_year"].min()), 
+                                max_value=int(df["model_year"].max()), value=2020)
     milage = st.number_input("Kilometraje", min_value=0, max_value=int(df["milage"].max()), value=50000, step=1000)
     engine = st.selectbox("Motor", df["engine"].unique())
     transmission = st.selectbox("Transmisión", df["transmission"].unique())
     ext_col = st.text_input("Color exterior", value="Negro")
     int_col = st.text_input("Color interior", value="Negro")
-    
+
     # Ejemplo para fuel_type
     fuel_type = st.selectbox("Tipo de combustible", ["E85 Flex Fuel", "gasoline", "hybrid", "unkown", "not supported", "-"])
-    
+
     clean_title_yes = st.checkbox("Título limpio", value=True)
     accident_none_reported = st.checkbox("Sin accidentes reportados", value=True)
 
+    # ===============================
     # Botón de predicción
+    # ===============================
     if st.button("Predecir precio"):
-        
-        # Recopilar inputs en un diccionario
+
+        # -------------------------------
+        # Inputs de usuario
+        # -------------------------------
         user_inputs = {
             "brand": brand,
             "transmission": transmission,
@@ -224,38 +232,83 @@ elif section == "🔮 Predicción":
             "ext_col": ext_col,
             "int_col": int_col
         }
-                
-        # Aquí se prepara el input para el modelo
-        input_dict = { col: 0 for col in final_columns }
-        
-        input_dict["milage"] = milage
-        input_dict["model_year"] = model_year
-        input_dict["clean_title_yes"] = int(clean_title_yes)
-        input_dict["accident_none_reported"] = int(accident_none_reported)
-        
-        for category, value in user_inputs.items():
-        # Construimos el nombre de la columna que debe activarse
-            col_name = f"{category}_{value}"
-            if col_name in final_columns:
-                input_dict[col_name] = 1
-                # El resto ya están en 0 gracias a la inicialización
 
+        # -------------------------------
+        # Inicializar input_dict
+        # -------------------------------
+        input_dict = {}
 
+        for col in final_columns:
+            # -------------------------------
+            # Target encoded columns
+            # -------------------------------
+            if col in target_maps:
+                mapping = target_maps[col]["mapping"]
+                global_mean = target_maps[col]["global_mean"]
+                user_value = user_inputs.get(col, None)
+
+                if user_value is not None:
+                    if user_value in mapping:
+                        input_dict[col] = mapping[user_value]
+                    else:
+                        # ⚠️ Valor no conocido → usar media
+                        input_dict[col] = global_mean
+                        st.warning(f"⚠️ Valor '{user_value}' para '{col}' no está en el mapping, usando media.")
+                else:
+                    input_dict[col] = global_mean
+
+            # -------------------------------
+            # Flags / binarias
+            # -------------------------------
+            elif col in ["clean_title_yes", "accident_none_reported"]:
+                input_dict[col] = int(clean_title_yes) if col == "clean_title_yes" else int(accident_none_reported)
+
+            # -------------------------------
+            # Variables numéricas
+            # -------------------------------
+            else:
+                # milage y model_year vienen del input
+                if col == "milage":
+                    input_dict[col] = milage
+                elif col == "model_year":
+                    input_dict[col] = model_year
+                # resto de columnas numéricas: usar media si existe en df, o valor por defecto
+                else:
+                    if col in df.columns:
+                        input_dict[col] = df[col].mean()
+                    else:
+                        # Fallback seguro para columnas que no están en df
+                        input_dict[col] = 0
+
+        # -------------------------------
         # Convertir a DataFrame
+        # -------------------------------
         input_df = pd.DataFrame([input_dict])
-        input_df = input_df[final_columns]  # Asegurar el orden correcto de columnas
+        input_df = input_df[final_columns]  # asegurar orden exacto
 
-        # Predicción con modelo
-        pred_log = 10.679376
+        # -------------------------------
+        # Validación de NaN
+        # -------------------------------
+        if input_df.isna().sum().sum() > 0:
+            st.error("❌ Hay valores NaN en el input del modelo")
+            st.write(input_df)
+            st.stop()
+
+        # -------------------------------
+        # Mostrar input final para depuración
+        # -------------------------------
+        st.write("INPUT FINAL PARA EL MODELO:")
+        st.dataframe(input_df)
+
+        # -------------------------------
+        # Predicción
+        # -------------------------------
+        pred_log = modelo.predict(input_df)[0]
         price_real = np.exp(pred_log)
-        print(price_real)
-        
-        preds = modelo.predict(input_df)
-        print(np.min(preds), np.max(preds), np.mean(preds))
 
-        
-        # Mostrar resultado
         st.success(f"💰 Precio estimado: ${price_real:,.0f}")
+
+
 
 elif section == "📈 Rendimiento del Modelo":
     st.title("📈 Rendimiento del Modelo")
