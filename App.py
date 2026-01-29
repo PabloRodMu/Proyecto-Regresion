@@ -18,10 +18,14 @@ def load_data():
 df = load_data() # Carga de datos
 
 
-modelo = joblib.load("best_xgb_model_final.pkl") # Carga del modelo
-target_maps = joblib.load("target_encoding_maps.joblib") # Carga del encoding
+def load_artifacts():
+    model = joblib.load("model/best_xgb_model_final.pkl")
+    encodings = joblib.load("model/target_encoding_maps.joblib")
+    feature_order = joblib.load("model/feature_order.pkl")
+    brand_model_options = joblib.load("model/brand_model_options.pkl")
+    return model, encodings, feature_order, brand_model_options
 
-final_columns = modelo.get_booster().feature_names # Columnas finales usadas en el modelo
+model, target_encoding_maps, feature_order, brand_model_options = load_artifacts()  
 
 with open("metrics.json", "r") as f:
     metrics = json.load(f)
@@ -37,124 +41,155 @@ st.set_page_config(page_title="App de Regresión", layout="wide")
 TARGET = "price"
 
 
-st.sidebar.title("Menú")
+with st.sidebar:
+    st.title("Menú")
 
-section = st.sidebar.radio(
-    "Selecciona una sección:",
-    [
-        "📊 Dashboard Analítico",
-        "🔮 Predicción",
-        "📈 Rendimiento del Modelo",
-        "📝 Feedback",
-    ],
+    section = st.sidebar.radio(
+        "Selecciona una sección:",
+        [
+            "📊 Dashboard Analítico",
+            "🔮 Predicción",
+            "📈 Rendimiento del Modelo",
+            "📝 Feedback",
+        ],
+    )
+    st.divider()
+    st.subheader("Filtros")
+
+    selected_brand = st.multiselect(
+        "Marca",
+        options=sorted(df["brand"].unique()),
+        default=sorted(df["brand"].unique())
+    )
+
+    year_range = st.slider(
+        "Año del modelo",
+        int(df["model_year"].min()),
+        int(df["model_year"].max()),
+        (2010, 2024)
+    )
+
+    price_range = st.slider(
+    "Rango de precio ($)",
+    min_value=int(df["price"].min()),
+    max_value=int(df["price"].max()),
+    value=(
+        int(df["price"].min()),
+        int(df["price"].max())
+    ),
+    format="$%d"
 )
 
+    filtered_models = (
+    df[df["brand"].isin(selected_brand)]["model"]
+    .dropna()
+    .unique()
+    )
 
+    selected_models = st.multiselect(
+        "Modelo",
+        options=sorted(filtered_models),
+        default=sorted(filtered_models)
+    )
 
 
 
 # Secciones
 
 if section == "📊 Dashboard Analítico":
-    st.title("📊 Dashboard Analítico")
-    st.write("Aquí irán los gráficos del dataset.")
-    st.markdown(
-        """
-    ### ¿Qué muestra este dashboard?
+    st.markdown("""
+    <style>
+    .header {
+        text-align: center;
+        padding: 1rem;
+        background-color: #0e1117;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    .header h1 {
+        color: white;
+        margin: 0;
+    }
+    .header p {
+        color: #a6a6a6;
+        margin: 0;
+    }
+    </style>
 
-    Este dashboard permite explorar el dataset utilizado para entrenar
-    un modelo de regresión. El objetivo es entender la distribución de la
-    variable objetivo y su relación con otras variables.
-    """
-    )
-    st.markdown(
-        f"""
-    ### 🎯 Variable objetivo
-    El objetivo del modelo es predecir el **precio (`{TARGET}`)** de un coche usado
-    en función de sus características técnicas y de uso.
-    """
-    )
+    <div class="header">
+        <h1>Dashboard Analítico</h1>
+        <p>Análisis y predicción de precios de coches usados</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Filtro de marcas
-    with st.expander("Filtro de marcas"):
-            
-            selected_brands = st.multiselect(
-            "Filtrar marcas:",
-            df["brand"].unique(),
-            default=df["brand"].unique()
-            )
-            filtered_df = df[df["brand"].isin(selected_brands)]
-    # KPI del precio
-    with st.expander("Métricas clave del precio"):
-        
-        col1, col2, col3 = st.columns(3)
+    st.markdown('<div class="block">', unsafe_allow_html=True)
 
-        col1.metric("Precio medio", f"${filtered_df[TARGET].mean():,.0f}")
-        col2.metric("Precio mediano", f"${filtered_df[TARGET].median():,.0f}")
-        col3.metric("Desviación estándar", f"${filtered_df[TARGET].std():,.0f}")
+    # Metemos los filtros en df_filtered
+    
+    df_filtered = df[
+    (df["brand"].isin(selected_brand)) &
+    (df["model"].isin(selected_models)) &
+    (df["model_year"].between(year_range[0], year_range[1])) &
+    (df["price"].between(price_range[0], price_range[1]))
+    ]
 
-        st.markdown(
-            """
-        **Insight:**  
+
+    
+    # KPIs
+    
+    st.markdown("### 📊 KPIs principales")
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+
+    kpi1.metric("Precio medio", f"${df_filtered[TARGET].mean():,.0f}")
+    kpi2.metric("Precio mediano", f"${df_filtered[TARGET].median():,.0f}")
+    kpi3.metric("Nº vehículos", len(df_filtered))
+    kpi4.metric("Desviación estándar", f"${df_filtered[TARGET].std():,.0f}")
+    
+    st.expander("Insight").write(
+        """ 
         La diferencia entre el precio medio y mediano sugiere una distribución sesgada,
         probablemente debido a la presencia de coches de lujo con precios muy altos.
         """
-        )
-
+    )
 
     # Gráfico de distribución de la variable objetivo
 
-    with st.expander("Distribución del precio (hasta 500.000 $)"):
 
+    g1, g2 = st.columns(2)
+
+    # --- Gráfica 1: Distribución de precios ---
+    with g1:
         fig, ax = plt.subplots(figsize=(5, 2))
 
-        filtered_prices = filtered_df[filtered_df[TARGET] < 500_000][TARGET]
+        filtered_prices = df_filtered[df_filtered[TARGET] < 3000000][TARGET]
         ax.hist(filtered_prices, bins=40)
 
         ax.set_xlabel("Precio ($)")
         ax.set_ylabel("Frecuencia")
         ax.set_title("Distribución del precio de coches usados")
-
+        ax.yaxis.set_major_formatter(
+            mtick.FuncFormatter(lambda x, pos: f"{int(x/1000)}k")
+        )
         ax.xaxis.set_major_formatter(
             mtick.FuncFormatter(lambda x, pos: f"{int(x/1000)}k")
         )
 
         st.pyplot(fig)
 
-        st.markdown(
+        with st.expander("Insight"):
+            st.write(
+                 """
+            La mayoría de los coches usados se concentran por debajo de 500.000 $.
+            Los valores extremos corresponden a vehículos premium o de alta gama.
             """
-        **Insight:**  
-        La mayoría de los coches usados se concentran por debajo de 500.000 $.
-        Los valores extremos corresponden a vehículos premium o de alta gama.
-        """
-        )
+            )
 
-
-    
-    # Boxplot de precio
-    with st.expander("Boxplot del precio"):
-        
-        fig, ax = plt.subplots(figsize=(5, 1.5))
-        ax.boxplot(filtered_df[TARGET], vert=False)
-        ax.set_title("Boxplot del precio")
-        ax.xaxis.set_major_formatter(
-            mtick.FuncFormatter(lambda x, pos: f"{int(x/1000)}k")
-        )
-        st.pyplot(fig)
-
-        st.markdown(
-            """
-        **Insight:**  
-        Algunos coches tienen precios extremadamente altos, lo que indica la presencia de outliers en el dataset.
-        """
-        )
-
-    # Scatter plot de precio vs kilometraje
-    with st.expander("Ver relación entre kilometraje y precio"):
-
+    # --- Gráfica 2: Precio vs kilometraje ---
+    with g2:
         fig, ax = plt.subplots(figsize=(5, 2))
 
-        ax.scatter(filtered_df["milage"], filtered_df[TARGET], alpha=0.4)
+        ax.scatter(df_filtered["milage"], df_filtered[TARGET], alpha=0.4)
         ax.set_xlabel("Kilometros (KM)")
         ax.set_ylabel("Precio ($)")
         ax.set_title("Kilometraje vs Precio")
@@ -168,145 +203,141 @@ if section == "📊 Dashboard Analítico":
 
         st.pyplot(fig)
 
-        st.markdown(
-            """
-        **Insight:**  
-        Existe una tendencia negativa entre el kilometraje y el precio: a mayor kilometraje, menor precio.
-        """
+        with st.expander("Insight"):
+            st.write(
+                "Existe una tendencia negativa entre el kilometraje y el precio: a mayor kilometraje, menor precio."
+            )
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    g3, g4 = st.columns(2)
+    
+    # --- Gráfica 3: Boxplot del precio ---
+    with g3:
+        fig, ax = plt.subplots(figsize=(5, 1.5))
+        ax.set_xlabel("Precio ($)")
+        ax.boxplot(df_filtered[TARGET], vert=False)
+        ax.set_title("Boxplot del precio")
+        ax.xaxis.set_major_formatter(
+            mtick.FuncFormatter(lambda x, pos: f"{int(x/1000)}k")
         )
+        st.pyplot(fig)
 
-    # Scatter  plot precio vs año
-    with st.expander("Ver relación entre año del modelo y precio"):
+        with st.expander("Insight"):
+            "Algunos coches tienen precios extremadamente altos, lo que indica la presencia de outliers en el dataset."
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        fig, ax = plt.subplots(figsize=(5, 2))
 
-        ax.scatter(filtered_df["model_year"], filtered_df[TARGET], alpha=0.4)
+    # --- Gráfica 4: Año del modelo vs precio ---
+    with g4:
+        fig, ax = plt.subplots(figsize=(5, 1.5))
+
+        ax.scatter(df_filtered["model_year"], df_filtered[TARGET], alpha=0.4)
         ax.set_xlabel("Año del modelo")
         ax.set_ylabel("Precio ($)")
         ax.set_title("Año del modelo vs Precio")
-        ax.yaxis.set_major_formatter(mtick.StrMethodFormatter("${x:,.0f}"))
-
-        st.pyplot(fig)
-
-        st.markdown(
-            """
-        **Insight:**  
-        Hay una clara tendencia positiva entre el año del modelo y el precio: los modelos más nuevos tienden a tener precios más altos.
-        """
+        ax.yaxis.set_major_formatter(
+            mtick.FuncFormatter(lambda x, pos: f"{int(x/1000)}k")
         )
 
+        st.pyplot(fig)
+        
+        st.markdown("")
+        st.markdown("")
+        
+        with st.expander("Insight"):
+            "Hay una clara tendencia positiva entre el año del modelo y el precio: los modelos más nuevos tienden a tener precios más altos."
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    
+
 elif section == "🔮 Predicción":
-    st.title("🔮 Predicción")
-    st.markdown("Introduce las características del coche:")
+    st.title("Predicción de precio de coche")
+    st.write("Introduce las características del coche y el modelo estimará el precio.")
 
-    # ===============================
-    # Inputs de usuario
-    # ===============================
-    brand = st.selectbox("Marca", df["brand"].unique())
-    model_year = st.number_input("Año del modelo", min_value=int(df["model_year"].min()), 
-                                max_value=int(df["model_year"].max()), value=2020)
-    milage = st.number_input("Kilometraje", min_value=0, max_value=int(df["milage"].max()), value=50000, step=1000)
-    engine = st.selectbox("Motor", df["engine"].unique())
-    transmission = st.selectbox("Transmisión", df["transmission"].unique())
-    ext_col = st.text_input("Color exterior", value="Negro")
-    int_col = st.text_input("Color interior", value="Negro")
+    # Selectores dependientes
+    brand = st.selectbox(
+        "Marca",
+        sorted(brand_model_options.keys())
+    )
 
-    # Ejemplo para fuel_type
-    fuel_type = st.selectbox("Tipo de combustible", ["E85 Flex Fuel", "gasoline", "hybrid", "unkown", "not supported", "-"])
+    models_for_brand = sorted(brand_model_options[brand].keys())
 
-    clean_title_yes = st.checkbox("Título limpio", value=True)
-    accident_none_reported = st.checkbox("Sin accidentes reportados", value=True)
+    model_car = st.selectbox(
+        "Modelo",
+        models_for_brand
+    )
 
-    # ===============================
-    # Botón de predicción
-    # ===============================
+    ext_colors = brand_model_options[brand][model_car]["ext_col"]
+    int_colors = brand_model_options[brand][model_car]["int_col"]
+
+    # Fallbacks de seguridad
+    if not ext_colors:
+        ext_colors = sorted(target_encoding_maps["ext_col"]["mapping"].keys())
+
+    if not int_colors:
+        int_colors = sorted(target_encoding_maps["int_col"]["mapping"].keys())
+
+    ext_col = st.selectbox("Color exterior", ext_colors)
+    int_col = st.selectbox("Color interior", int_colors)
+
+    model_year = st.number_input("Año", 1990, 2024, 2018)
+    milage = st.number_input("Kilometraje", 0, 500000, 50000)
+    horsepower = st.number_input("Caballos", 50, 1500, 150)
+    engine_liters = st.number_input("Litros motor", 0.8, 8.0, 2.0)
+
+    # booleanos
+    turbo = st.checkbox("Turbo")
+    clean_title = st.checkbox("Clean title (título limpio)")
+    accident_none = st.checkbox("Accident: None reported")
+
+    # fuel types
+    fuel_E85 = st.checkbox("Fuel: E85 Flex Fuel")
+    fuel_Gasoline = st.checkbox("Fuel: Gasoline")
+    fuel_Hybrid = st.checkbox("Fuel: Hybrid")
+    fuel_PlugIn = st.checkbox("Fuel: Plug-In Hybrid")
+    fuel_Unknown = st.checkbox("Fuel: Unknown")
+
+    # ----------------------------
+    # PREPARAR INPUT
+    # ----------------------------
+    input_df = pd.DataFrame([{
+        "brand": brand,
+        "model": model_car,
+        "model_year": model_year,
+        "milage": milage,
+        "ext_col": ext_col,
+        "int_col": int_col,
+        "horsepower": horsepower,
+        "engine_liters": engine_liters,
+        "turbo": turbo,
+        "clean_title_Yes": clean_title,
+        "accident_None reported": accident_none,
+        "fuel_type_E85 Flex Fuel": fuel_E85,
+        "fuel_type_Gasoline": fuel_Gasoline,
+        "fuel_type_Hybrid": fuel_Hybrid,
+        "fuel_type_Plug-In Hybrid": fuel_PlugIn,
+        "fuel_type_Unknown": fuel_Unknown
+    }])
+
+    # ----------------------------
+    # TARGET ENCODING
+    # ----------------------------
+    for col, enc in target_encoding_maps.items():
+        input_df[col] = input_df[col].map(enc["mapping"]).fillna(enc["global_mean"])
+
+    # ----------------------------
+    # ORDENAR COLUMNAS
+    # ----------------------------
+    input_df = input_df.reindex(columns=feature_order, fill_value=0)
+
+    # ----------------------------
+    # PREDICCIÓN
+    # ----------------------------
     if st.button("Predecir precio"):
-
-        # -------------------------------
-        # Inputs de usuario
-        # -------------------------------
-        user_inputs = {
-            "brand": brand,
-            "transmission": transmission,
-            "fuel_type": fuel_type,
-            "ext_col": ext_col,
-            "int_col": int_col
-        }
-
-        # -------------------------------
-        # Inicializar input_dict
-        # -------------------------------
-        input_dict = {}
-
-        for col in final_columns:
-            # -------------------------------
-            # Target encoded columns
-            # -------------------------------
-            if col in target_maps:
-                mapping = target_maps[col]["mapping"]
-                global_mean = target_maps[col]["global_mean"]
-                user_value = user_inputs.get(col, None)
-
-                if user_value is not None:
-                    if user_value in mapping:
-                        input_dict[col] = mapping[user_value]
-                    else:
-                        # ⚠️ Valor no conocido → usar media
-                        input_dict[col] = global_mean
-                        st.warning(f"⚠️ Valor '{user_value}' para '{col}' no está en el mapping, usando media.")
-                else:
-                    input_dict[col] = global_mean
-
-            # -------------------------------
-            # Flags / binarias
-            # -------------------------------
-            elif col in ["clean_title_yes", "accident_none_reported"]:
-                input_dict[col] = int(clean_title_yes) if col == "clean_title_yes" else int(accident_none_reported)
-
-            # -------------------------------
-            # Variables numéricas
-            # -------------------------------
-            else:
-                # milage y model_year vienen del input
-                if col == "milage":
-                    input_dict[col] = milage
-                elif col == "model_year":
-                    input_dict[col] = model_year
-                # resto de columnas numéricas: usar media si existe en df, o valor por defecto
-                else:
-                    if col in df.columns:
-                        input_dict[col] = df[col].mean()
-                    else:
-                        # Fallback seguro para columnas que no están en df
-                        input_dict[col] = 0
-
-        # -------------------------------
-        # Convertir a DataFrame
-        # -------------------------------
-        input_df = pd.DataFrame([input_dict])
-        input_df = input_df[final_columns]  # asegurar orden exacto
-
-        # -------------------------------
-        # Validación de NaN
-        # -------------------------------
-        if input_df.isna().sum().sum() > 0:
-            st.error("❌ Hay valores NaN en el input del modelo")
-            st.write(input_df)
-            st.stop()
-
-        # -------------------------------
-        # Mostrar input final para depuración
-        # -------------------------------
-        st.write("INPUT FINAL PARA EL MODELO:")
-        st.dataframe(input_df)
-
-        # -------------------------------
-        # Predicción
-        # -------------------------------
-        pred_log = modelo.predict(input_df)[0]
-        price_real = np.exp(pred_log)
-
-        st.success(f"💰 Precio estimado: ${price_real:,.0f}")
+        log_price_pred = model.predict(input_df)[0]
+        price_pred = np.expm1(log_price_pred)
+        st.metric("Precio estimado", f"${price_pred:,.0f}")
 
 
 
