@@ -108,9 +108,9 @@ Este proyecto fue desarrollado colaborativamente por un equipo multidisciplinari
 
 | Rol | Nombre | GitHub | LinkedIn |
 |-----|--------|--------|----------|
-| **Product Owner** | Raúl Ríos Moreno | [@RayalzDev](https://github.com/RayalzDev) | [LinkedIn](https://www.linkedin.com/in/raul-rios-moreno/) |
+| **Product Owner** | Raúl Ríos Moreno | [![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/RayalzDev) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/raul-rios-moreno/) |
 | **Data Analyst** | Pablo Rodríguez Muñoz | [![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/PabloRodMu) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/pablo-rodríguez-muñoz-357890185) |
-| **Scrum Master** | Mariana Moreno | [@MarianaMH1195](https://github.com/MarianaMH1195) | [LinkedIn](https://www.linkedin.com/in/mariana-moreno-henao/) |
+| **Scrum Master** | Mariana Moreno | [![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MarianaMH1195) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mariana-moreno-henao/) |
 
 **Metodología**: Scrum con sprints semanales, daily standups virtuales y pair programming para secciones críticas del código.
 
@@ -253,7 +253,15 @@ La aplicación **Streamlit** estructura el proyecto en tres áreas clave:
 
 ## 🐳 Dockerización
 
-El proyecto incluye una containerización completa para garantizar reproducibilidad en cualquier entorno.
+El proyecto está completamente containerizado para asegurar que funcione igual en cualquier máquina.
+
+- **Dockerfile**: Configurado con una imagen ligera de Python (`slim`) para eficiencia.
+- **Docker Compose**: Orquesta el servicio web en el puerto `8501`, permitiendo iniciar todo el entorno con un solo comando.
+
+```bash
+# Para construir y correr el proyecto:
+docker-compose up --build
+```
 
 ### Dockerfile
 
