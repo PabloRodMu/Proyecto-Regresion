@@ -108,9 +108,9 @@ Este proyecto fue desarrollado colaborativamente por un equipo multidisciplinari
 
 | Rol | Nombre | GitHub | LinkedIn |
 |-----|--------|--------|----------|
-| **Product Owner** | Raúl Ríos Moreno | [@RayalzDev](https://github.com/RayalzDev) | [LinkedIn](https://www.linkedin.com/in/raul-rios-moreno/) |
-| **Data Analyst** | Pablo Rodríguez Muñoz | [@PabloRodMu](https://github.com/PabloRodMu) | [LinkedIn](https://www.linkedin.com/in/pablo-rodríguez-muñoz-357890185) |
-| **Scrum Master** | Mariana Moreno | [@MarianaMH1195](https://github.com/MarianaMH1195) | [LinkedIn](https://www.linkedin.com/in/mariana-moreno-henao/) |
+| **Product Owner** | Raúl Ríos Moreno | [![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/RayalzDev) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/raul-rios-moreno/) |
+| **Data Analyst** | Pablo Rodríguez Muñoz | [![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/PabloRodMu) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/pablo-rodríguez-muñoz-357890185) |
+| **Scrum Master** | Mariana Moreno | [![GitHub](https://img.shields.io/badge/GitHub-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MarianaMH1195) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mariana-moreno-henao/) |
 
 **Metodología**: Scrum con sprints semanales, daily standups virtuales y pair programming para secciones críticas del código.
 
