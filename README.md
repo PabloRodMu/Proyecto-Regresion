@@ -194,7 +194,7 @@ Proyecto-Regression-g1/
 
 ### Origen del Dataset
 
-El dataset proviene del **Bootcamp de Data Analysis de Factoría F5** y contiene información real de anuncios de vehículos usados en el mercado estadounidense.
+El dataset proviene de **Kaggle** y contiene información real de anuncios de vehículos usados en el mercado estadounidense.
 
 ### Dimensiones
 
