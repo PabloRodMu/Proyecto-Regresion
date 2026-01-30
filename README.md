@@ -376,7 +376,7 @@ docker-compose logs -f app
 #### Paso 1: Clonar el repositorio
 ```bash
 git clone https://github.com/PabloRodMu/Proyecto-Regresion.git
-cd Proyecto-Regression-g1
+cd Proyecto-Regresion
 ```
 
 #### Paso 2: Construir y levantar el contenedor
@@ -406,7 +406,7 @@ docker-compose down
 #### Paso 1: Clonar el repositorio
 ```bash
 git clone https://github.com/PabloRodMu/Proyecto-Regresion.git
-cd Proyecto-Regression-g1
+cd Proyecto-Regresion
 ```
 
 #### Paso 2: Crear entorno virtual (recomendado)
