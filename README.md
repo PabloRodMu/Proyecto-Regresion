@@ -541,32 +541,12 @@ Presionar `Ctrl + C` en la terminal
 - **Temporal**: Agregar "edad del vehículo" y "depreciation_rate" calculada
 
 #### 2. **Modelos Ensembled**
-```python
-# Stacking de múltiples modelos
-from sklearn.ensemble import StackingRegressor
 
-estimators = [
-    ('xgb', xgb_model),
-    ('rf', rf_model),
-    ('gb', gb_model)
-]
-
-stacked_model = StackingRegressor(
-    estimators=estimators,
-    final_estimator=LinearRegression()
-)
-```
 **Beneficio esperado**: +2-3% en R² según literatura
 
 #### 3. **Intervalos de Confianza**
 Implementar predicción probabilística para mostrar:
 - "Precio estimado: $25,000 ± $3,500 (95% confianza)"
-
-```python
-from sklearn.ensemble import GradientBoostingRegressor
-
-gbr = GradientBoostingRegressor(loss='quantile', alpha=0.95)
-```
 
 ### Medio Plazo (3-6 meses)
 
@@ -583,23 +563,6 @@ gbr = GradientBoostingRegressor(loss='quantile', alpha=0.95)
 #### 6. **API RESTful**
 Exponer el modelo como servicio:
 
-```python
-from fastapi import FastAPI
-from pydantic import BaseModel
-
-app = FastAPI()
-
-class CarFeatures(BaseModel):
-    brand: str
-    model: str
-    # ... otras features
-
-@app.post("/predict")
-async def predict_price(car: CarFeatures):
-    prediction = model.predict(...)
-    return {"estimated_price": float(prediction)}
-```
-
 **Beneficio**: Permite integración con sistemas externos (apps móviles, CRMs)
 
 ### Largo Plazo (6-12 meses)
@@ -612,16 +575,6 @@ Experimentar con redes neuronales:
 #### 8. **AutoML**
 Implementar búsqueda automática de modelos:
 
-```python
-from autogluon.tabular import TabularPredictor
-
-predictor = TabularPredictor(label='price').fit(
-    train_data=df_train,
-    time_limit=3600,  # 1 hora
-    presets='best_quality'
-)
-```
-
 #### 9. **Deployment Productivo**
 - **CI/CD**: Pipeline automático con GitHub Actions
 - **Monitoreo**: Tracking de model drift con Evidently AI
@@ -629,16 +582,6 @@ predictor = TabularPredictor(label='price').fit(
 
 #### 10. **Explicabilidad**
 Implementar **SHAP values** para explicar predicciones individuales:
-
-```python
-import shap
-
-explainer = shap.TreeExplainer(model)
-shap_values = explainer.shap_values(X_test)
-
-# Visualizar importancia de features para predicción específica
-shap.force_plot(explainer.expected_value, shap_values[0], X_test.iloc[0])
-```
 
 **Beneficio**: Transparencia para usuarios (por qué el modelo predijo X precio)
 
