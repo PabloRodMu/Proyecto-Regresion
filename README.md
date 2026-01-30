@@ -1,4 +1,6 @@
-# 🚗 Predicción de Precios de Vehículos Usados
+![Project Banner](assets/project_banner.png)
+
+# Predicción de Precios de Vehículos Usados
 
 > **Proyecto de Machine Learning para la estimación del valor de mercado de automóviles de segunda mano mediante modelos de regresión avanzados**
 
