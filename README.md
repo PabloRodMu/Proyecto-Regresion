@@ -375,7 +375,7 @@ docker-compose logs -f app
 
 #### Paso 1: Clonar el repositorio
 ```bash
-git clone https://github.com/Bootcamp-Data-Analyst/Proyecto-Regression-g1.git
+git clone https://github.com/PabloRodMu/Proyecto-Regresion.git
 cd Proyecto-Regression-g1
 ```
 
@@ -405,7 +405,7 @@ docker-compose down
 
 #### Paso 1: Clonar el repositorio
 ```bash
-git clone https://github.com/Bootcamp-Data-Analyst/Proyecto-Regression-g1.git
+git clone https://github.com/PabloRodMu/Proyecto-Regresion.git
 cd Proyecto-Regression-g1
 ```
 
