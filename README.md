@@ -206,41 +206,44 @@ Proyecto-Regression-g1/
 
 ---
 
-## 🔧 Feature Engineering
+## 🔧 Feature Engineering y Preparación
 
-El notebook implementa transformaciones clave para maximizar el rendimiento del modelo:
+Siguiendo un flujo de trabajo riguroso para preparar los datos, se realizaron los siguientes pasos secuenciales:
 
-1.  **Extracción de Información (Regex)**: Se procesó la columna de texto `engine` para crear nuevas variables numéricas:
-    -   `horsepower` (Potencia)
-    -   `engine_liters` (Cilindrada)
-    -   `cylinders` (Cilindros)
-    -   `turbo` (Variable binaria)
-2.  **Transformación del Target**: Aplicación de `np.log1p` al precio para normalizar su distribución y mejorar la predicción.
-3.  **Codificación de Variables**:
-    -   **Target Encoding**: Aplicado a `brand`, `model`, `ext_col` e `int_col` para manejar alta cardinalidad.
-    -   **One-Hot Encoding**: Para variables binarias y de pocas categorías (`fuel_type`, `accident`).
+1.  **Construcción del Diccionario de Opciones para Streamlit**: Se generó una estructura relacional interna (guardada como `brand_model_options.pkl`) que mapea cada **marca** con sus **modelos** y los **colores exteriores e interiores** disponibles. Esto asegura que la aplicación solo muestre combinaciones válidas al usuario.
+2.  **Ingeniería de Características en `engine`**: A partir de la columna de texto `engine`, se crearon **4 nuevas columnas numéricas** mediante expresiones regulares:
+    -   `horsepower`
+    -   `engine_liters`
+    -   `cylinders`
+    -   `turbo` (variable binaria)
+3.  **Eliminación de Columnas Redundantes**: Se eliminaron 4 columnas que ya no aportaban valor o contenían información duplicada/inutilizable: `engine`, `transmission`, `fuel_type` y `fuel_type_not supported`.
+4.  **Transformación Logarítmica del Target**: Se aplicó `np.log1p` a la variable objetivo `price` para suavizar su distribución sesgada y mejorar el rendimiento de los modelos de regresión.
+5.  **Estandarización de Evaluación**: Se implementó una función reutilizable `evaluate_model` para entrenar y medir el rendimiento de todos los algoritmos bajo las mismas condiciones y estructura de métricas.
 
 ---
 
 ## 🤖 Modelado y Entrenamiento
 
-- **Modelo Seleccionado**: **XGBoost Regressor**, elegido por su capacidad para manejar relaciones no lineales y outliers.
-- **Entrenamiento**: Se utilizó validación cruzada y búsqueda de hiperparámetros (`GridSearchCV`) para optimizar el rendimiento.
-- **Métricas Finales**:
-    -   **R² (Test)**: ~0.66 (El modelo explica el 66% de la variabilidad del precio).
-    -   **RMSE**: ~0.49 (Error cuadrático medio en escala logarítmica).
+El proceso de modelado respetó el siguiente orden lógico para evitar fugas de datos (data leakage):
 
-> El modelo verifica un bajo nivel de **overfitting** (< 5%), asegurando buena generalización.
+1.  **División de Datos (Train/Test Split)**: Separación del dataset en conjuntos de entrenamiento y prueba.
+2.  **Persistencia del Orden de Features**: Se guardó un archivo `.pkl` (`feature_order.pkl`) con el orden exacto de las columnas de entrada. Esto es crítico para que Streamlit ordene los datos exactamente igual que el modelo durante el entrenamiento.
+3.  **Target Encoding**: Se aplicó la codificación de variables categóricas de alta cardinalidad (Marcas, Modelos) **después** del split para evitar contaminar el set de validación con información del target.
+4.  **Entrenamiento y Comparación**: Se entrenaron y compararon múltiples modelos, evaluando su capacidad de generalización.
+5.  **Optimización y Validación Cruzada**: Se ajustaron los hiperparámetros del modelo ganador (**XGBoost**) mediante Cross-Validation.
+6.  **Guardado de Artefactos**:
+    -   El modelo final y sus métricas se exportaron en formatos `.pkl` y `.json`.
+    -   Los mapas de codificación (Target Encoding) validada se guardaron en un archivo `.joblib`.
 
 ---
 
 ## 📊 Dashboard Interactivo
 
-La aplicación (`App.py`) desarrollada en **Streamlit** se estructura en:
+La aplicación (`App.py`) desarrollada en **Streamlit** integra todos estos componentes:
 
--   **Dashboard Analítico**: Exploración visual de datos con filtros dinámicos (Marca, Modelo, Año, Precio). Incluye histogramas y gráficos de dispersión.
--   **Sistema de Predicción**: Interfaz para introducir características de un vehículo y obtener una estimación de precio en tiempo real (invirtiendo la transformación logarítmica).
--   **Panel de Rendimiento**: Muestra las métricas técnicas del modelo (RMSE, MAE, R²) para transparencia y validación.
+-   **Dashboard Analítico**: Exploración visual de datos con filtros dinámicos.
+-   **Sistema de Predicción**: Utiliza los artefactos generados (`feature_order.pkl`, `brand_model_options.pkl`, modelo y encodings) para reconstruir el pipeline de preprocesamiento en tiempo real e invertir la transformación logarítmica para mostrar el precio real estimado.
+-   **Panel de Rendimiento**: Visualización transparente de las métricas (`metrics.json`) obtenidas durante la fase de entrenamiento.
 
 ---
 
