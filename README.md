@@ -110,7 +110,7 @@ Este proyecto fue desarrollado colaborativamente por un equipo multidisciplinari
 |-----|--------|--------|----------|
 | **Product Owner** | Raúl Ríos Moreno | [@RayalzDev](https://github.com/RayalzDev) | [LinkedIn](https://www.linkedin.com/in/raul-rios-moreno/) |
 | **Data Analyst** | Pablo Rodríguez Muñoz | [@PabloRodMu](https://github.com/PabloRodMu) | [LinkedIn](https://www.linkedin.com/in/pablo-rodríguez-muñoz-357890185) |
-| **Scrum Master** | Mariana Moreno | [@MarianaMH1195](https://github.com/MarianaMH1195) | [LinkedIn](https://www.linkedin.com/in/mariana-moreno-henao/) |
+| **Scrum Master** | Mariana Moreno Henao | [@MarianaMH1195](https://github.com/MarianaMH1195) | [LinkedIn](https://www.linkedin.com/in/mariana-moreno-henao/) |
 
 **Metodología**: Scrum con sprints semanales, daily standups virtuales y pair programming para secciones críticas del código.
 
