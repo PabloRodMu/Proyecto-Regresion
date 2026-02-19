@@ -3,6 +3,8 @@
 <p align="center">
   <b>🔗 Aplicación en Producción:</b><br>
   <a href="https://proyecto-regresion-pablo-rm.streamlit.app/" target="_blank">
+    https://proyecto-regresion-pablo-rm.streamlit.app/
+  </a>
 ![Project Banner](assets/project_banner.png)
 
 # Predicción de Precios de Vehículos Usados
