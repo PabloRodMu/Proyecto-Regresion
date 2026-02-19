@@ -9,10 +9,21 @@
 
 > **Proyecto de Machine Learning para la estimación del valor de mercado de automóviles de segunda mano mediante modelos de regresión avanzados**
 
-[![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen.svg)](https://www.docker.com/)
-[![XGBoost](https://img.shields.io/badge/XGBoost-Model-orange.svg)](https://xgboost.readthedocs.io/)
+
+<p align="center">
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/Python-3.10-blue.svg" />
+  </a>
+  <a href="https://streamlit.io/">
+    <img src="https://img.shields.io/badge/Streamlit-1.28+-red.svg" />
+  </a>
+  <a href="https://www.docker.com/">
+    <img src="https://img.shields.io/badge/Docker-Ready-brightgreen.svg" />
+  </a>
+  <a href="https://xgboost.readthedocs.io/">
+    <img src="https://img.shields.io/badge/XGBoost-Model-orange.svg" />
+  </a>
+</p>
 
 ---
 
