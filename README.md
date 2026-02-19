@@ -1,13 +1,11 @@
-# 🚀 Proyecto de regresión
+# 🚗 Predicción de Precios de Vehículos Usados
 
 <p align="center">
-  <b>🔗 Aplicación en Producción:</b><br>
+  <b>🔗 Aplicación en la nube:</b><br>
   <a href="https://proyecto-regresion-pablo-rm.streamlit.app/" target="_blank">
     https://proyecto-regresion-pablo-rm.streamlit.app/
   </a>
-![Project Banner](assets/project_banner.png)
-
-# Predicción de Precios de Vehículos Usados
+</p>
 
 > **Proyecto de Machine Learning para la estimación del valor de mercado de automóviles de segunda mano mediante modelos de regresión avanzados**
 
